@@ -75,6 +75,14 @@ std::string MyAdd(std::string a, std::string b) {
 	return ans;
 }
 std::string MyMultiply(std::string a, std::string b) {
+	if (b[0] == '-') {
+		std::string subb = b.substr(1, b.size() - 1);
+		if (a[0] == '-') {
+			std::string suba = a.substr(1, a.size() - 1);
+			return MyMultiply(suba, subb);
+		}
+		return "-" + MyMultiply(a, subb);
+	}
 	if (b.size() > a.size()) return MyMultiply(b, a);
 	std::string ans = "0";
 	RevStr(b);
@@ -144,6 +152,18 @@ std::string MyMinus(std::string a, std::string b) {
 	return ans;
 }
 std::string MyDivide(std::string a, std::string b) {
+	if (a[0] == '-') {
+		std::string suba = a.substr(1, a.size() - 1);
+		if (b[0] == '-') {
+			std::string subb = b.substr(1, b.size() - 1);
+			return MyDivide(suba, subb);
+		}
+		return "-" + MyDivide(suba, b);
+	}
+	if (b[0] == '-') {
+		std::string subb = b.substr(1, b.size() - 1);
+		return "-" + MyDivide(a, subb);
+	}
 	std::string ans = "0", c = a;
 	while (StrRefToNumGreater(c, "0")) {
 		c = MyMinus(c, b);
