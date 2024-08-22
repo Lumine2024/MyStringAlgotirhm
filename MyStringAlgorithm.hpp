@@ -183,6 +183,10 @@ std::string MyMod(std::string a, std::string b) {
 	return MyAdd(c, b);
 }
 std::string MyPow(std::string x, std::string n) {
+	if (x[0] == '-') {
+		std::string subx = x.substr(1, x.size() - 1);
+		return (MyMod(n, "2") == "0") ? (MyPow(subx, n)) : ("-" + MyPow(subx, n));
+	}
 	if (StrRefToNumGreater("0",n)) return "0";
 	if (n == "0") return "1";
 	std::string k = MyPow(x, MyDivide(n, "2"));
