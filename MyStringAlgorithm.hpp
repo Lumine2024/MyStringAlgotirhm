@@ -1,27 +1,27 @@
 /*
 * The file is for counting numbers that overflow int and long.
 * It cannot calculate demicals though, but I will add it soon(maybe not too soon)
+* Only able to deal standard string numbers(no '-' in everywhere but in s[0], and no other signs(such as '+', '=', '_', ' ', and so on))
 */
 #ifndef MYSTRINGALGORITHM_HPP
 #define MYSTRINGALGORITHM_HPP
 #include <string>
 #include<algorithm>
-
 #pragma warning(disable:4267)
+
 
 std::string MyMinus(std::string a, std::string b);
 void RevStr(std::string& s) {
 	std::reverse(s.begin(), s.end());
 }
-bool StrRefToNumGreater(std::string a, std::string b) {
-	if (a[0] == '-' && b[0] != '-') return false;
-	if (a[0] != '-' && b[0] == '-') return true;
-	if (a == b) return false;
+bool StrRefToNumGreater(const std::string a,const std::string b) {
 	if (a[0] == b[0] && a[0] == '-') {
 		std::string suba = a.substr(1, a.size() - 1);
 		std::string subb = b.substr(1, b.size() - 1);
 		return (StrRefToNumGreater(subb, suba));
 	}
+	if (a[0] == '-') return false;
+	if (b[0] == '-') return true;
 	if (a.size() > b.size()) return true;
 	if (a.size() < b.size()) return false;
 	int n = a.size();
@@ -29,10 +29,15 @@ bool StrRefToNumGreater(std::string a, std::string b) {
 		if (a[i] > b[i]) return true;
 		if (a[i] < b[i]) return false;
 	}
-	return false;
+	return false;//they are equal
 }
 
-std::string MyAdd(std::string a, std::string b) {
+std::string MyAdd(const std::string a, const std::string b) {
+	if (a[0] == '-' && b[0] == '-') {
+		std::string suba = a.substr(1, a.size() - 1);
+		std::string subb = b.substr(1, b.size() - 1);
+		return ("-" + MyAdd(suba, subb));
+	}
 	if (a[0] == '-') {
 		std::string suba = a.substr(1, a.size() - 1);
 		return MyMinus(b, suba);
@@ -43,13 +48,14 @@ std::string MyAdd(std::string a, std::string b) {
 	}
 	if (a.size() < b.size()) return MyAdd(b, a);
 	std::string ans;
-	RevStr(a);
-	RevStr(b);
-	int s = a.size();
+	std::string stra = a, strb = b;
+	RevStr(stra);
+	RevStr(strb);
+	int s = stra.size();
 	int carry = 0;
 	for (int i = 0; i < s; i++) {
-		if (i < b.size()) {
-			int m = (int)(a[i] - '0'), n = (int)(b[i] - '0');
+		if (i < strb.size()) {
+			int m = (int)(stra[i] - '0'), n = (int)(strb[i] - '0');
 			int p = m + n + carry;
 			carry = 0;
 			if (p < 10) ans.push_back((char)(p + '0'));
@@ -59,22 +65,21 @@ std::string MyAdd(std::string a, std::string b) {
 			}
 		}
 		else {
-			int m = (int)(a[i] - '0') + carry;
+			int m = (int)(stra[i] - '0') + carry;
 			carry = 0;
 			if (m < 10) ans.push_back((char)(m + '0'));
 			else {
-				ans.push_back((char)(m - 10 + '0'));
+				ans.push_back((char)('0'));
 				carry = 1;
 			}
 		}
 	}
 	if (carry == 1) ans.push_back('1');
 	RevStr(ans);
-	RevStr(a);
-	RevStr(b);
 	return ans;
 }
-std::string MyMultiply(std::string a, std::string b) {
+//O(m*n^2), I don't have a more efficient way to rectify it, sorry.
+std::string MyMultiply(const std::string a, const std::string b) {
 	if (b[0] == '-') {
 		std::string subb = b.substr(1, b.size() - 1);
 		if (a[0] == '-') {
@@ -84,14 +89,14 @@ std::string MyMultiply(std::string a, std::string b) {
 		return "-" + MyMultiply(a, subb);
 	}
 	if (b.size() > a.size()) return MyMultiply(b, a);
-	std::string ans = "0";
-	RevStr(b);
+	std::string ans = "0", stra = a, strb = b;
+	RevStr(strb);
 	std::vector<std::string> singles;
-	for (int i = 0; i < b.size(); i++) {
+	for (int i = 0; i < strb.size(); i++) {
 		std::string str = "0";
-		int k = (int)(b[i] - '0');
+		int k = (int)(strb[i] - '0');
 		for (int j = 0; j < k; j++) {
-			str = MyAdd(str, a);
+			str = MyAdd(str, stra);
 		}
 		for (int l = 0; l < i; l++) {
 			str.push_back('0');
@@ -101,10 +106,9 @@ std::string MyMultiply(std::string a, std::string b) {
 	for (int p = 0; p < singles.size(); p++) {
 		ans = MyAdd(ans, singles[p]);
 	}
-	RevStr(b);
 	return ans;
 }
-std::string MyMinus(std::string a, std::string b) {
+std::string MyMinus(const std::string a, const std::string b) {
 	if (a == b) return "0";
 	if (b[0] == '-') {
 		std::string str = b.substr(1, b.size() - 1);
@@ -118,14 +122,14 @@ std::string MyMinus(std::string a, std::string b) {
 	if (!StrRefToNumGreater(a, b)) {
 		return "-" + MyMinus(b, a);
 	}
-	std::string ans = "";
-	RevStr(a);
-	RevStr(b);
-	int s = a.size();
+	std::string ans = "", stra = a, strb = b;
+	RevStr(stra);
+	RevStr(strb);
+	int s = stra.size();
 	int subtract = 0;
 	for (int i = 0; i < s; i++) {
-		if (i < b.size()) {
-			int k = a[i] - b[i] - subtract;
+		if (i < strb.size()) {
+			int k = stra[i] - strb[i] - subtract;
 			subtract = 0;
 			if (k < 0) {
 				subtract = 1;
@@ -134,7 +138,7 @@ std::string MyMinus(std::string a, std::string b) {
 			ans.push_back((char)(k + '0'));
 		}
 		else {
-			int k = a[i] - subtract - '0';
+			int k = stra[i] - subtract - '0';
 			subtract = 0;
 			if (k < 0) {
 				subtract = 1;
@@ -146,12 +150,10 @@ std::string MyMinus(std::string a, std::string b) {
 	while (ans[ans.size() - 1] == '0') {
 		ans.pop_back();
 	}
-	RevStr(a);
-	RevStr(b);
 	RevStr(ans);
 	return ans;
 }
-std::string MyDivide(std::string a, std::string b) {
+std::string MyDivide(const std::string a, const std::string b) {
 	if (a[0] == '-') {
 		std::string suba = a.substr(1, a.size() - 1);
 		if (b[0] == '-') {
@@ -174,15 +176,15 @@ std::string MyDivide(std::string a, std::string b) {
 	}
 	return ans;
 }
-std::string MyMod(std::string a, std::string b) {
-	std::string c=a;
+std::string MyMod(const std::string a, const std::string b) {
+	std::string c = a;
 	while (StrRefToNumGreater(c, "0")) {
 		c = MyMinus(c, b);
 	}
 	if (c == "0") return c;
 	return MyAdd(c, b);
 }
-std::string MyPow(std::string x, std::string n) {
+std::string MyPow(const std::string x, const std::string n) {
 	if (x[0] == '-') {
 		std::string subx = x.substr(1, x.size() - 1);
 		return (MyMod(n, "2") == "0") ? (MyPow(subx, n)) : ("-" + MyPow(subx, n));
@@ -192,7 +194,7 @@ std::string MyPow(std::string x, std::string n) {
 	std::string k = MyPow(x, MyDivide(n, "2"));
 	return ((MyMod(n, "2") != "0") ? MyMultiply(MyMultiply(x, k), k) : MyMultiply(k, k));
 }
-std::string MySqrt(std::string x) {
+std::string MySqrt(const std::string x) {
 	if (x[0] == '-') return "-1";
 	std::string s = "0";
 	for (; !StrRefToNumGreater(s, x); s = MyAdd(s, "1")) {
@@ -201,8 +203,12 @@ std::string MySqrt(std::string x) {
 			return s;
 		}
 	}
-	return "0";
+	return "0";//will never happen
 }
+std::string MyAbs(const std::string x) {
+	return (x[0] != '-') ? x : x.substr(1, x.size() - 1);
+}
+
 
 #pragma warning(default:4267)
 
